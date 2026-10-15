@@ -1,192 +1,41 @@
-# Food Delivery App - Agent Guidelines
+This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
 
-## Project Overview
+## Expo has changed — do not trust your training data
 
-A dual-role food delivery mobile application:
-- **Customers**: Browse restaurants, order food, track orders
-- **Restaurant Owners**: Manage menu, view orders, track analytics
+Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
 
-Built with Expo (React Native), TypeScript, and file-based routing.
+1. Read the major version of the `expo` package in `package.json`.
+2. Fetch the matching versioned docs: `https://docs.expo.dev/versions/v<major>.0.0/`
+3. For anything else, fetch https://docs.expo.dev/llms.txt — an index of all Expo docs with corrections to common LLM misconceptions. Follow its links to the specific page you need; never answer from memory.
 
----
+## Commands
 
-## Quick Start
+Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
 
 ```bash
-# Install dependencies
-npm install
-
-# Start development server
-npx expo start
-
-# Run on specific platform
-npx expo start --android
-npx expo start --ios
+npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
+npx expo start              # start the dev server
+npx expo lint               # lint
+npx tsc --noEmit            # typecheck
+npx expo-doctor             # diagnose dependency and config issues
+npx expo install --fix      # fix incompatible package versions
 ```
 
----
+Run lint and typecheck before declaring any task done.
 
-## Directory Structure
+## Navigation & Routing
 
-```
-├── app/                    # Expo Router screens
-│   ├── (auth)/            # Public auth screens
-│   ├── (customer)/        # Customer-protected screens
-│   ├── (restaurant)/      # Restaurant-protected screens
-│   └── _layout.tsx        # Root layout with providers
-├── components/
-│   ├── ui/                # Atomic UI components (Button, Card, Input)
-│   ├── customer/          # Customer-specific components
-│   ├── restaurant/        # Restaurant-specific components
-│   └── layout/            # Navigation, headers, tab bars
-├── context/               # React Context providers
-├── hooks/                 # Custom React hooks
-├── data/                  # Mock data (ready for API swap)
-├── constants/             # Theme, config, routes
-├── types/                 # TypeScript definitions
-└── utils/                 # Helper functions
-```
+- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
+- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
+- Docs: https://docs.expo.dev/router/introduction.md
 
----
+## Building with EAS
 
-## Code Conventions
+Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
+Docs: https://docs.expo.dev/eas/index.md
 
-### TypeScript
-- Strict mode enabled
-- No `any` without explicit comment
-- Prefer `interface` over `type` for objects
+## Rules
 
-### Styling
-- Use `StyleSheet.create` from theme constants
-- Follow 4px grid system
-- Only use theme colors (no hardcoded hex)
-- Design tokens in `constants/theme.ts`
-
-### File Naming
-- Components: `PascalCase.tsx`
-- Hooks: `useCamelCase.ts`
-- Utilities: `camelCase.ts`
-- Types: `camelCase.ts`
-
-### Component Pattern
-```typescript
-import { View, Text, StyleSheet } from 'react-native';
-import { theme } from '@/constants/theme';
-
-interface Props {
-  title: string;
-  onPress?: () => void;
-}
-
-export function MyComponent({ title, onPress }: Props) {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.text}>{title}</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.lg,
-    backgroundColor: theme.colors.surface,
-  },
-  text: {
-    ...theme.typography.bodyLarge,
-    color: theme.colors.onSurface,
-  },
-});
-```
-
----
-
-## Design System Reference
-
-See `docs/DESIGN_SYSTEM.md` for:
-- Color palette (green financial aesthetic)
-- Component specifications
-- Typography scale
-- Spacing system
-- Screen templates
-
----
-
-## State Management
-
-- **AuthContext**: User, role, login/logout
-- **CartContext**: Cart items (customer only)
-- **RestaurantContext**: Restaurants, menus, orders
-
-Access via hooks:
-```typescript
-const { user, role } = useAuth();
-const { items, total, addItem } = useCart();
-const { restaurants, orders, updateOrderStatus } = useRestaurant();
-```
-
----
-
-## Testing Checklist
-
-Before committing:
-- [ ] TypeScript compiles: `npx tsc --noEmit`
-- [ ] No console errors in Expo
-- [ ] Both roles work correctly
-- [ ] Design system followed
-- [ ] Empty states handled
-
----
-
-## Documentation
-
-| Document | Purpose |
-|----------|---------|
-| `docs/PRD.md` | Product requirements, user stories |
-| `docs/ARCHITECTURE.md` | Technical design, data models, routes |
-| `docs/DESIGN_SYSTEM.md` | Visual language, components, tokens |
-
----
-
-## Do NOT
-
-- ❌ Hardcode colors or spacing
-- ❌ Use class components (functional + hooks only)
-- ❌ Add new dependencies without approval
-- ❌ Modify root `_layout.tsx` without discussion
-- ❌ Skip TypeScript types
-
----
-
-## Common Tasks
-
-### Add a new screen
-1. Create file in `app/(customer)/` or `app/(restaurant)/`
-2. Update relevant `_layout.tsx` if adding tabs
-3. Add route constant in `constants/routes.ts`
-
-### Add a mock API call
-1. Add type to `types/`
-2. Add mock data to `data/`
-3. Update `RestaurantContext` with async method
-4. Use `useRestaurant()` hook to access
-
-### Create a reusable component
-1. Add to `components/ui/` if atomic
-2. Follow design system specs
-3. Export with proper TypeScript interface
-4. Use theme constants for styling
-
----
-
-## Environment
-
-| Tool | Version |
-|------|---------|
-| Node | 18+ |
-| Expo SDK | 51+ |
-| TypeScript | 5.3+ |
-
----
-
-*Last updated: October 14, 2026*
+- If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
+- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
+- Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
